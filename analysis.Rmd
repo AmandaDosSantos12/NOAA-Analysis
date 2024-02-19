@@ -110,8 +110,22 @@ unique(NOAAdata[,"EVTYPE"])
 ```
 
 ```{r}
-removes <- c("abnormal", "accumulated", "astronomical.*high", "erosion", 
-             )
+keeps <- c("astronomical low tide", "avalanche", "blizzard", "coastal flood", 
+             "cold/wind chill", "extreme cold/wind chill", "dense fog", 
+             "dense smoke", "drought", "dust devil", "dust storm", 
+             "excessive heat", "flash flood", "flood", "lakeshore flood", 
+             "funnel cloud", "freezing fog", "heat", "hail", "heavy rain", 
+             "heavy snow", "high surf", "high wind", "hurricane", "ice storm", 
+             "lake-effect snow", "lightning", "marine hail", "marine high wind",
+             "marine strong wind", "marine thunderstorm wind", "rip current", 
+             "seiche", "sleet", "storm surge/tide", "strong wind", 
+             "thunderstorm wind", "tornado", "tropical depression", 
+             "tropical storm", "tsunami", "volcanic ash", "waterspout", 
+             "wildfire", "winter storm", "winter weather")
+
+NOAAdata <- subset(NOAAdata, EVTYPE %in% keeps)
+
+head(NOAAdata)
 
 ```
 
@@ -131,6 +145,13 @@ event_types <- replace(event_types, event_types == "dust storm", "DUST STORM")
 event_types <- replace(event_types, event_types == "excessive heat", "EXCESSIVE HEAT")
 event_types <- replace(event_types, event_types == "flash flood", "FLASH FLOOD")
 event_types <- replace(event_types, event_types == "flood", "FLOOD")
+c("astronomical low tide", "avalanche", "blizzard", "coastal flood", "cold/wind chill", "extreme cold/wind chill",
+  "dense fog", "dense smoke", "drought", "dust devil", "dust storm", "excessive heat", "flash flood", "flood",
+  "lakeshore flood", "funnel cloud", "freezing fog", "heat", "hail", "heavy rain", "heavy snow", "high surf",
+  "high wind", "hurricane", "ice storm", "lake-effect snow", "lightning", "marine hail", "marine high wind",
+  "marine strong wind", "marine thunderstorm wind", "rip current", "seiche", "sleet", "storm surge/tide",
+  "strong wind", "thunderstorm wind", "tornado", "tropical depression", "tropical storm","tsunami",
+  "volcanic ash", "waterspout", "wildfire", "winter storm", "winter weather")
 event_types <- replace(event_types, event_types == "lakeshore flood", "LAKESHORE FLOOD")
 event_types <- replace(event_types, event_types == "frost/freeze", "FROST/FREEZE")
 event_types <- replace(event_types, event_types == "funnel cloud", "FUNNEL CLOUD")
