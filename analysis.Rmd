@@ -1,0 +1,171 @@
+---
+title: "NOAA Analysis"
+output: html_notebook
+---
+
+This is an analysis of an NOAA dataset to determine weather events that are the
+most harmful to human health and cause the most economic damage.
+
+```{r cache = TRUE}
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2",
+                      "data/StormData.csv")
+NOAAdata <- read.csv("data/StormData.csv", na.strings = "")
+
+NOAAdata[,"BGN_DATE"] <- as.Date(NOAAdata[,"BGN_DATE"], "%m/%d/%Y")
+NOAAdata <- NOAAdata[NOAAdata[,"BGN_DATE"] > "1996-01-01",]
+```
+```{r}
+
+NOAAdata[,"EVTYPE"] <- tolower(NOAAdata[,"EVTYPE"])
+NOAAdata[,"EVTYPE"] <- trimws(NOAAdata[,"EVTYPE"])
+
+NOAAdata <- NOAAdata[grep("summary", NOAAdata[,"EVTYPE"], invert = TRUE),]
+
+event_types <- NOAAdata[,"EVTYPE"]
+event_types <- replace(event_types, grep("cstl flooding/erosion", event_types), "coastal flooding")
+event_types <- replace(event_types, grep("coastal.*flood", event_types), "coastal flooding")
+
+event_types <- replace(event_types, grep("(extreme|bitter).*wind.*chill", event_types), "EX C/W")
+event_types <- replace(event_types, grep("(excessive|extreme).*cold", event_types), "EX C/W")
+event_types <- replace(event_types, grep("wind.*chill", event_types), "cold/wind chill")
+event_types <- replace(event_types, grep("cold", event_types), "cold/wind chill")
+event_types <- replace(event_types, grep("EX C/W", event_types), "extreme cold/wind chill")
+
+event_types <- replace(event_types, grep("excessive.*heat.*drought", event_types), "excessive heat")
+event_types <- replace(event_types, grep("drought", event_types), "drought")
+
+event_types <- replace(event_types, grep("dust.*storm", event_types), "DS")
+event_types <- replace(event_types, grep("dust", event_types), "dust devil")
+event_types <- replace(event_types, event_types == "DS", "dust storm")
+
+event_types <- replace(event_types, grep("flash.*flood", event_types), "FF")
+event_types <- replace(event_types, event_types == "erosion/cstl flood", "coastal flood")
+event_types <- replace(event_types, event_types == "lakeshore flood", "LSF")
+event_types <- replace(event_types, event_types == "coastal flooding", "CF")
+event_types <- replace(event_types, grep("flood", event_types), "flood")
+event_types <- replace(event_types, event_types == "FF", "flash flood")
+event_types <- replace(event_types, event_types == "LSF", "lakeshore flood")
+event_types <- replace(event_types, event_types == "CF", "coastal flood")
+
+event_types <- replace(event_types, grep("frost|freeze", event_types), "frost/freeze")
+event_types <- replace(event_types, event_types == "freezing fog", "FF")
+event_types <- replace(event_types, grep("freez", event_types), "frost/freeze")
+event_types <- replace(event_types, event_types == "FF", "freezing fog")
+
+event_types <- replace(event_types, grep("funnel", event_types), "funnel cloud")
+
+event_types <- replace(event_types, event_types == "marine hail", "MH")
+event_types <- replace(event_types, grep("hail", event_types), "hail")
+event_types <- replace(event_types, event_types == "MH", "marine hail")
+
+event_types <- replace(event_types, event_types == "excessive heat", "EH")
+event_types <- replace(event_types, grep("heat", event_types), "heat")
+event_types <- replace(event_types, event_types == "EH", "excessive heat")
+
+#remove "record low rainfall" before this line runs
+event_types <- replace(event_types, 
+                       grep("(heavy|excessive|hvy|prolonged|record|torrential).*rain", event_types),
+                       "heavy rain")
+event_types <- replace(event_types, grep("rain damage", event_types), "heavy rain")
+
+event_types <- replace(event_types, grep("heavy.*snow", event_types), "heavy snow")
+
+event_types <- replace(event_types, grep("surf", event_types), "high surf")
+
+event_types <- replace(event_types, grep("non.*tstm.*wind", event_types), "wind")
+event_types <- replace(event_types, grep("marine.*high", event_types), "MHW")
+event_types <- replace(event_types, grep("marine.*(thunderstorm|tstm)", event_types), "MTW")
+event_types <- replace(event_types, grep("marine.*strong", event_types), "MSW")
+event_types <- replace(event_types, grep("(thunderstorm|tstm).*(wind|wnd)", event_types), "thunderstorm wind")
+event_types <- replace(event_types, grep("strong.*(wind|wnd)", event_types), "strong wind")
+event_types <- replace(event_types, grep("high.*(wind|wnd)", event_types), "high wind")
+event_types <- replace(event_types, grep("wind.*damage", event_types), "high wind")
+event_types <- replace(event_types, event_types == "MSW", "marine strong wind")
+event_types <- replace(event_types, event_types == "MHW", "marine high wind")
+event_types <- replace(event_types, event_types == "MTW", "marine thunderstorm wind")
+
+event_types <- replace(event_types, grep("hurricane|typhoon", event_types), "hurricane")
+
+event_types <- replace(event_types, grep("ice.*storm", event_types), "ice storm")
+
+event_types <- replace(event_types, grep("lake.*effect.*snow", event_types), "lake-effect snow")
+
+event_types <- replace(event_types, grep("rip", event_types), "rip current")
+
+event_types <- replace(event_types, grep("sleet", event_types), "sleet")
+
+event_types <- replace(event_types, grep("storm.*surge|blow-out", event_types), "storm surge/tide")
+
+event_types <- replace(event_types, grep("volcanic.*ash", event_types), "volcanic ash")
+
+event_types <- replace(event_types, grep("waterspout", event_types), "waterspout")
+
+event_types <- replace(event_types, grep("fire", event_types), "wildfire")
+
+event_types <- replace(event_types, grep("(winter|wintry|wintery).*(weather|mix)", event_types), "winter weather")
+
+NOAAdata[,"EVTYPE"] <- event_types
+
+unique(NOAAdata[,"EVTYPE"])
+```
+
+```{r}
+removes <- c("abnormal", "accumulated", "astronomical.*high", "erosion", 
+             )
+
+```
+
+```{r}
+
+event_types <- replace(event_types, event_types == "astronomical low tide", "ASTRONOMICAL LOW TIDE")
+event_types <- replace(event_types, event_types == "avalanche", "AVALANCHE")
+event_types <- replace(event_types, event_types == "blizzard", "BLIZZARD")
+event_types <- replace(event_types, event_types == "coastal flood", "COASTAL FLOOD")
+event_types <- replace(event_types, event_types == "cold/wind chill", "COLD/WIND CHILL")
+event_types <- replace(event_types, event_types == "extreme cold/wind chill", "EXTREME COLD/WIND CHILL")
+event_types <- replace(event_types, event_types == "dense fog", "DENSE FOG")
+event_types <- replace(event_types, event_types == "dense smoke", "DENSE SMOKE")
+event_types <- replace(event_types, event_types == "drought", "DROUGHT")
+event_types <- replace(event_types, event_types == "dust devil", "DUST DEVIL")
+event_types <- replace(event_types, event_types == "dust storm", "DUST STORM")
+event_types <- replace(event_types, event_types == "excessive heat", "EXCESSIVE HEAT")
+event_types <- replace(event_types, event_types == "flash flood", "FLASH FLOOD")
+event_types <- replace(event_types, event_types == "flood", "FLOOD")
+event_types <- replace(event_types, event_types == "lakeshore flood", "LAKESHORE FLOOD")
+event_types <- replace(event_types, event_types == "frost/freeze", "FROST/FREEZE")
+event_types <- replace(event_types, event_types == "funnel cloud", "FUNNEL CLOUD")
+event_types <- replace(event_types, event_types == "freezing fog", "FREEZING FOG")
+event_types <- replace(event_types, event_types == "hail", "HAIL")
+event_types <- replace(event_types, event_types == "heat", "HEAT")
+event_types <- replace(event_types, event_types == "heavy rain", "HEAVY RAIN")
+event_types <- replace(event_types, event_types == "heavy snow", "HEAVY SNOW")
+event_types <- replace(event_types, event_types == "high surf", "HIGH SURF")
+event_types <- replace(event_types, event_types == "high wind", "HIGH WIND")
+event_types <- replace(event_types, event_types == "hurricane", "HURRICANE")
+event_types <- replace(event_types, event_types == "ice storm", "ICE STORM")
+event_types <- replace(event_types, event_types == "lake-effect snow", "LAKE-EFFECT SNOW")
+event_types <- replace(event_types, event_types == "lightning", "LIGHTNING")
+event_types <- replace(event_types, event_types == "marine hail", "MARINE HAIL")
+event_types <- replace(event_types, event_types == "marine high wind", "MARINE HIGH WIND")
+event_types <- replace(event_types, event_types == "marine strong wind", "MARINE STRONG WIND")
+event_types <- replace(event_types, event_types == "marine thunderstorm wind", "MARINE THUNDERSTORM WIND")
+event_types <- replace(event_types, event_types == "rip current", "RIP CURRENT")
+event_types <- replace(event_types, event_types == "seiche", "SEICHE")
+event_types <- replace(event_types, event_types == "sleet", "SLEET")
+event_types <- replace(event_types, event_types == "storm surge/tide", "STORM SURGE/TIDE")
+event_types <- replace(event_types, event_types == "strong wind", "STRONG WIND")
+event_types <- replace(event_types, event_types == "thunderstorm wind", "THUNDERSTORM WIND")
+event_types <- replace(event_types, event_types == "tornado", "TORNADO")
+event_types <- replace(event_types, event_types == "tropical depression", "TROPICAL DEPRESSION")
+event_types <- replace(event_types, event_types == "tropical storm", "TROPICAL STORM")
+event_types <- replace(event_types, event_types == "tsunami", "TSUNAMI")
+event_types <- replace(event_types, event_types == "volcanic ash", "VOLCANIC ASH")
+event_types <- replace(event_types, event_types == "waterspout", "WATERSPOUT")
+event_types <- replace(event_types, event_types == "wildfire", "WILDFIRE")
+event_types <- replace(event_types, event_types == "winter storm", "WINTER STORM")
+event_types <- replace(event_types, event_types == "winter weather", "WINTER WEATHER")
+
+sort(unique(event_types))
+
+```
+
